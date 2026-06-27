@@ -1,0 +1,28 @@
+# =============================================================================
+# requirements.txt — Nikola AI (Sprint 1 only)
+#
+# This file is a convenience pin-list for environments/tools that expect a
+# requirements.txt (e.g., some CI systems, Docker base images, readers who
+# don't use `pip install -e ".[dev]"`). The pyproject.toml [project.dependencies]
+# and [project.optional-dependencies] sections are the actual source of truth.
+#
+# Scope: ONLY what Sprint 1 (Project Bootstrap) needs to run and be developed.
+# No Brain/LLM SDKs, no databases, no vector stores, no plugin frameworks —
+# those are introduced in their respective future sprints per the roadmap.
+#
+# Install with:
+#   pip install -r requirements.txt
+# or, preferably, for editable development:
+#   pip install -e ".[dev]"
+# =============================================================================
+
+# --- Runtime ------------------------------------------------------------------
+typer>=0.12,<1.0
+
+# --- Development tooling -------------------------------------------------------
+ruff>=0.6,<1.0
+black>=24.0,<25.0
+mypy>=1.10,<2.0
+pytest>=8.0,<9.0
+pytest-cov>=5.0,<6.0
+pre-commit>=3.7,<4.0

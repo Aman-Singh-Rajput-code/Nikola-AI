@@ -1,0 +1,1 @@
+"""Infrastructure layer: concrete adapters implementing domain ports (LLM providers, databases, schedulers, logging). The only layer allowed to import third-party SDKs directly. Implemented in later sprints."""

@@ -1,0 +1,174 @@
+# =============================================================================
+# pyproject.toml — Nikola AI
+#
+# Single source of truth for: package metadata, build system, dependencies,
+# console scripts, and the configuration of every development tool (Ruff,
+# Black, MyPy, Pytest). Using one file for all of this (rather than scattering
+# setup.cfg / .flake8 / mypy.ini / pytest.ini) keeps the project's tooling
+# auditable in one place — important for a project meant to last years and
+# accumulate contributors.
+# =============================================================================
+
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nikola-ai"
+version = "0.1.0"
+description = "Nikola AI — a modular, provider-agnostic, plugin-based AI Operating System."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+authors = [
+    { name = "Nikola AI Project" }
+]
+keywords = ["ai", "assistant", "agent", "automation", "llm"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+# -----------------------------------------------------------------------------
+# Runtime dependencies.
+#
+# Sprint 1 scope ONLY: no Brain/LLM SDKs, no databases, no plugin frameworks.
+# Those land in their respective sprints (v0.2+) per the roadmap. The only
+# runtime dependency here is the CLI framework, since Sprint 1's sole
+# deliverable is a working `nikola` console command.
+# -----------------------------------------------------------------------------
+dependencies = [
+    "typer>=0.12,<1.0",
+]
+
+[project.optional-dependencies]
+# Development tooling — linting, formatting, type-checking, testing, git hooks.
+# Installed via: pip install -e ".[dev]"
+dev = [
+    "ruff>=0.6,<1.0",
+    "black>=24.0,<25.0",
+    "mypy>=1.10,<2.0",
+    "pytest>=8.0,<9.0",
+    "pytest-cov>=5.0,<6.0",
+    "pre-commit>=3.7,<4.0",
+]
+
+# -----------------------------------------------------------------------------
+# Console script entry point.
+#
+# This is what makes `nikola` a runnable command after `pip install -e .`.
+# It points at `main()` inside the CLI interface module — the one piece of
+# "logic" Sprint 1 is allowed to contain.
+# -----------------------------------------------------------------------------
+[project.scripts]
+nikola = "nikola.interfaces.cli.cli_app:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/nikola-ai"
+Documentation = "https://github.com/your-org/nikola-ai/blob/main/README.md"
+
+# -----------------------------------------------------------------------------
+# src-layout packaging.
+#
+# Tells setuptools that importable packages live under src/, not at the repo
+# root. This is what prevents accidentally importing an uninstalled, stale,
+# or shadowed copy of `nikola` from the current working directory instead of
+# the properly installed package — a common and hard-to-diagnose bug in
+# flat-layout projects.
+# -----------------------------------------------------------------------------
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+nikola = ["py.typed"]
+
+# =============================================================================
+# Ruff — linter (and import-sorter). Fast, replaces flake8 + isort.
+# =============================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade — flags outdated syntax for the target Python version
+    "B",    # flake8-bugbear — common bug patterns
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "ARG",  # flake8-unused-arguments
+    "TCH",  # flake8-type-checking
+]
+ignore = [
+    "E501",  # line length is enforced by Black instead, avoid double-reporting
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nikola"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG001", "ARG002"]  # pytest fixtures often appear "unused" to linters
+
+# =============================================================================
+# Black — code formatter. Ruff lints/sorts imports; Black owns formatting,
+# avoiding overlap by disabling Ruff's own formatter integration.
+# =============================================================================
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+include = '\.pyi?$'
+
+# =============================================================================
+# MyPy — static type checker.
+#
+# Strict mode is scoped to domain/ for now (per the roadmap: "type-checking
+# strict on domain/" is a v0.1 acceptance criterion). As application/,
+# infrastructure/, and plugins/ fill in over later sprints, strict mode will
+# be widened to cover them too.
+# =============================================================================
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true
+warn_return_any = true
+warn_unused_configs = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "nikola.domain.*"
+strict = true
+
+# =============================================================================
+# Pytest — test runner.
+# =============================================================================
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "unit: fast, no I/O, no external dependencies",
+    "integration: exercises real adapters (DB, filesystem, network)",
+    "e2e: exercises a full user journey through the application",
+]
+
+[tool.coverage.run]
+source = ["src/nikola"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

@@ -1,0 +1,1 @@
+"""Composition root: dependency injection wiring, application factory, plugin discovery. The only layer allowed to import concrete classes from every other layer together. Implemented in later sprints."""
