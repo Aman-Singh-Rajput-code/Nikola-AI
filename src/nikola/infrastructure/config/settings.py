@@ -30,6 +30,7 @@ sections are added in later sprints.
 from __future__ import annotations
 
 from enum import StrEnum
+from pathlib import Path  # noqa: TC003 (Pydantic needs this at runtime to build the model)
 
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
@@ -98,7 +99,16 @@ class AppSettings(BaseModel):
 
 
 class LoggingSettings(BaseModel):
-    """Structured logging configuration."""
+    """Structured logging configuration.
+
+    Sprint 2 introduced `level` and `json_format`. Sprint 3 (Structured
+    Logging Framework) adds `console_enabled` and `file_path` to support
+    console and file logging destinations without changing the meaning or
+    defaults of the existing fields — an existing `.env` or
+    `config/default.yaml` with only `level`/`json_format` set continues to
+    work unchanged, since both new fields have safe defaults
+    (console-only, no file).
+    """
 
     level: LogLevel = Field(
         default=LogLevel.INFO,
@@ -109,6 +119,18 @@ class LoggingSettings(BaseModel):
         description=(
             "Emit logs as structured JSON (production-friendly) rather than "
             "plain text (more readable during local development)."
+        ),
+    )
+    console_enabled: bool = Field(
+        default=True,
+        description="Emit log records to the console (stdout).",
+    )
+    file_path: Path | None = Field(
+        default=None,
+        description=(
+            "Optional filesystem path to write log records to, in addition "
+            "to (or instead of) the console. If unset, no file handler is "
+            "attached and only console logging (if enabled) occurs."
         ),
     )
 

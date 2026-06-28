@@ -5,7 +5,9 @@ and the rest are implemented in later sprints.
 """
 
 from nikola.domain.ports.config_provider_port import ConfigProviderPort
+from nikola.domain.ports.logger_port import LoggerPort
 
 __all__ = [
-    "ConfigProviderPort"
+    "ConfigProviderPort",
+    "LoggerPort"
 ]

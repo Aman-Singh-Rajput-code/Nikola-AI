@@ -9,6 +9,8 @@ behavior (YAML vs .env vs real env vars) is covered separately in
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -45,6 +47,16 @@ class TestLoggingSettingsDefaults:
         settings = LoggingSettings()
         assert settings.level == LogLevel.INFO
         assert settings.json_format is True
+        assert settings.console_enabled is True
+        assert settings.file_path is None
+
+    def test_file_path_accepts_a_path_string(self) -> None:
+        settings = LoggingSettings(file_path="logs/nikola.log")  # type: ignore[arg-type]
+        assert settings.file_path == Path("logs/nikola.log")
+
+    def test_console_enabled_can_be_disabled(self) -> None:
+        settings = LoggingSettings(console_enabled=False)
+        assert settings.console_enabled is False
 
     def test_invalid_level_is_rejected(self) -> None:
         with pytest.raises(ValidationError):

@@ -39,6 +39,10 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: ["typer>=0.12"]
+        additional_dependencies:
+          - "typer>=0.12"
+          - "pydantic>=2.7"
+          - "pydantic-settings>=2.3"
+          - "types-PyYAML>=6.0"
         args: ["--config-file=pyproject.toml"]
         files: ^src/

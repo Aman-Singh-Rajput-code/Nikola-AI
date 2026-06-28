@@ -136,11 +136,10 @@ include = '\.pyi?$'
 # =============================================================================
 # MyPy — static type checker.
 #
-# Strict mode is scoped to domain/ (since v0.1) and, as of Sprint 2, to
-# infrastructure/config/ as well — the first infrastructure module to contain
-# real logic. As application/, the remaining infrastructure/ submodules, and
-# plugins/ fill in over later sprints, strict mode will be widened to cover
-# them too.
+# Strict mode is scoped to domain/ (since v0.1), infrastructure/config/
+# (since Sprint 2), and infrastructure/logging/ (since Sprint 3). As
+# application/, the remaining infrastructure/ submodules, and plugins/ fill
+# in over later sprints, strict mode will be widened to cover them too.
 # =============================================================================
 [tool.mypy]
 python_version = "3.12"
@@ -158,6 +157,10 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = "nikola.infrastructure.config.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.logging.*"
 strict = true
 
 # =============================================================================
