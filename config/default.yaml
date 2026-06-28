@@ -1,0 +1,29 @@
+# =============================================================================
+# config/default.yaml — Nikola AI base configuration
+#
+# This file is the lowest-priority configuration LAYER above hardcoded field
+# defaults (see src/nikola/infrastructure/config/settings.py). It is checked
+# into version control and must NEVER contain secrets — API keys, tokens, and
+# credentials belong in `.env` (gitignored) or real environment variables,
+# both of which override anything set here.
+#
+# Resolution priority (highest wins):
+#   1. Real environment variables (e.g. NIKOLA_APP__DEBUG=true)
+#   2. .env file
+#   3. This file
+#   4. Field defaults in settings.py
+#
+# Only override a value here if you want a different *default* for everyone
+# running this codebase as-is. Personal/local overrides belong in your own
+# untracked .env file instead of editing this file.
+# =============================================================================
+
+app:
+  name: "Nikola AI"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+
+logging:
+  level: "INFO"
+  json_format: true

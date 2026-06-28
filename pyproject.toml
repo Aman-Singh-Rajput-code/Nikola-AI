@@ -36,13 +36,18 @@ classifiers = [
 # -----------------------------------------------------------------------------
 # Runtime dependencies.
 #
-# Sprint 1 scope ONLY: no Brain/LLM SDKs, no databases, no plugin frameworks.
-# Those land in their respective sprints (v0.2+) per the roadmap. The only
-# runtime dependency here is the CLI framework, since Sprint 1's sole
-# deliverable is a working `nikola` console command.
+# Sprint 1: typer, for the bootstrap CLI command.
+# Sprint 2: pydantic + pydantic-settings (typed, validated configuration
+# models and layered settings sources) and PyYAML (parsing config/default.yaml
+# as one of those layered sources). No Brain/LLM SDKs, databases, or plugin
+# frameworks yet — those land in their respective future sprints per the
+# roadmap.
 # -----------------------------------------------------------------------------
 dependencies = [
     "typer>=0.12,<1.0",
+    "pydantic>=2.7,<3.0",
+    "pydantic-settings>=2.3,<3.0",
+    "pyyaml>=6.0,<7.0",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +57,7 @@ dev = [
     "ruff>=0.6,<1.0",
     "black>=24.0,<25.0",
     "mypy>=1.10,<2.0",
+    "types-PyYAML>=6.0,<7.0",
     "pytest>=8.0,<9.0",
     "pytest-cov>=5.0,<6.0",
     "pre-commit>=3.7,<4.0",
@@ -130,10 +136,11 @@ include = '\.pyi?$'
 # =============================================================================
 # MyPy — static type checker.
 #
-# Strict mode is scoped to domain/ for now (per the roadmap: "type-checking
-# strict on domain/" is a v0.1 acceptance criterion). As application/,
-# infrastructure/, and plugins/ fill in over later sprints, strict mode will
-# be widened to cover them too.
+# Strict mode is scoped to domain/ (since v0.1) and, as of Sprint 2, to
+# infrastructure/config/ as well — the first infrastructure module to contain
+# real logic. As application/, the remaining infrastructure/ submodules, and
+# plugins/ fill in over later sprints, strict mode will be widened to cover
+# them too.
 # =============================================================================
 [tool.mypy]
 python_version = "3.12"
@@ -147,6 +154,10 @@ check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = "nikola.domain.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.config.*"
 strict = true
 
 # =============================================================================

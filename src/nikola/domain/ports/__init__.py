@@ -1,1 +1,11 @@
-"""Abstract interfaces (ports) that the domain depends on and infrastructure implements: BrainPort, ToolPort, MemoryRepositoryPort, etc. Implemented in later sprints."""
+"""Abstract interfaces (ports) that the domain depends on and infrastructure implements.
+
+Sprint 2 adds `ConfigProviderPort`. BrainPort, ToolPort, MemoryRepositoryPort,
+and the rest are implemented in later sprints.
+"""
+
+from nikola.domain.ports.config_provider_port import ConfigProviderPort
+
+__all__ = [
+    "ConfigProviderPort"
+]
