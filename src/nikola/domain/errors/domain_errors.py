@@ -7,9 +7,11 @@ itself decided was wrong" versus an unexpected third-party failure, and lets
 each layer's own error subtype carry the specific context that layer cares
 about.
 
-Sprint 2 introduces the first concrete errors: configuration failures. Later
-sprints (Planner, Permissions, Tool Registry, etc.) will add their own
-subtrees here without needing to change this base.
+Sprint 2 introduced the first concrete errors: configuration failures.
+Sprint 4 adds the core command/execution error vocabulary
+(`InvalidCommandError`, `ToolUnavailableError`, `CommandExecutionError`).
+Later sprints (Planner, Permissions, Tool Registry, etc.) will add their
+own subtrees here without needing to change this base.
 """
 
 from __future__ import annotations
@@ -51,4 +53,35 @@ class ConfigValidationError(ConfigurationError):
     invalid field at once (not just the first one), so a person fixing
     their configuration sees the whole picture in a single failed run
     instead of fixing one error only to immediately hit the next.
+    """
+
+
+class InvalidCommandError(NikolaError):
+    """Raised when a `Command` is malformed and cannot be processed.
+
+    A validation-time error: the command never reaches execution because
+    its shape or content is invalid (e.g. empty content). Distinct from
+    `CommandExecutionError`, which covers failures that occur while a
+    well-formed command is actually being carried out.
+    """
+
+
+class ToolUnavailableError(NikolaError):
+    """Raised when a `Command` requests a tool that is not available.
+
+    The Tool Registry that would actually raise this in practice does not
+    exist until a later sprint; this exception is defined now as part of
+    the domain's vocabulary so that future infrastructure code has a
+    stable, already-agreed type to raise and callers have a stable type
+    to catch.
+    """
+
+
+class CommandExecutionError(NikolaError):
+    """Raised when a well-formed `Command` fails while being executed.
+
+    Covers execution-time failures not already covered by the more
+    specific `InvalidCommandError` (malformed before execution started)
+    or `ToolUnavailableError` (the requested tool does not exist). Use
+    this for failures that occur once execution is genuinely underway.
     """

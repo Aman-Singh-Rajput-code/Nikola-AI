@@ -10,10 +10,11 @@ This project is built on **Clean Architecture** and **SOLID** principles, with a
 Gemini, Ollama, or any future provider) — so the core application logic never has to change
 when the underlying AI model, storage backend, or interface does.
 
-> **Current status: Sprint 1 — Project Bootstrap.**
-> This repository currently contains only the project skeleton, tooling configuration, and a
-> minimal CLI smoke test. No Brain, Planner, Agent, Memory, Tool, or Permission logic has been
-> implemented yet — that begins in subsequent sprints per the project roadmap.
+> **Current status: Sprint 2 — Configuration System.**
+> This repository contains the project skeleton, tooling configuration, and a production-grade,
+> fail-fast configuration system (Pydantic Settings, layered YAML/.env/environment-variable
+> resolution). No Brain, Planner, Agent, Memory, Tool, or Permission logic has been implemented
+> yet — that begins in subsequent sprints per the project roadmap.
 
 ---
 
@@ -37,12 +38,62 @@ permission system, multi-agent design, and the complete information-flow diagram
 
 ---
 
+## Configuration
+
+Nikola AI loads configuration from four layers, merged in this priority order (highest wins):
+
+```
+1. Real environment variables   e.g. export NIKOLA_APP__DEBUG=true
+2. A .env file                  (copy .env.example to .env; gitignored, never commit it)
+3. config/default.yaml          (checked into git — base, non-secret defaults)
+4. Field defaults                (declared on the Pydantic models themselves)
+```
+
+Nested settings use a double-underscore delimiter when set via environment variables or
+`.env`: `NIKOLA_<SECTION>__<FIELD>`, e.g. `NIKOLA_LOGGING__LEVEL=DEBUG` sets
+`settings.logging.level`. The same nesting is expressed naturally in YAML:
+
+```yaml
+logging:
+  level: DEBUG
+```
+
+**Configuration is validated at startup and fails fast.** If any value is missing, the wrong
+type, or otherwise invalid, loading raises a `ConfigurationError` (from
+`nikola.domain.errors`) with every invalid field listed at once — not just the first one — so
+a misconfigured deployment is easy to fix in a single pass rather than a frustrating
+fix-one-error-at-a-time loop.
+
+To use configuration in code:
+
+```python
+from nikola.infrastructure.config import EnvConfigProvider
+
+provider = EnvConfigProvider()          # loads and validates immediately; raises on failure
+settings = provider.get_settings()      # fully-typed NikolaSettings
+print(settings.app.name)
+print(settings.logging.level)
+
+# Or, for a one-off lookup by dotted key path:
+provider.get("logging.level")
+```
+
+Application and domain code should depend on `nikola.domain.ports.ConfigProviderPort` (the
+abstract contract), not on `EnvConfigProvider` directly — this keeps configuration swappable
+(e.g. for a future remote config service) without touching any of its callers. See
+`src/nikola/infrastructure/config/` for the full implementation: `settings.py` (schema),
+`yaml_source.py` (the custom YAML settings source), `loader.py` (fail-fast orchestration), and
+`env_config_provider.py` (the concrete port adapter).
+
+---
+
 ## Project Structure
 
 ```
 nikola-ai/
 ├── pyproject.toml          # Package metadata, build config, all dev-tool configs
-├── requirements.txt        # Sprint 1 pinned dependencies (convenience mirror of pyproject)
+├── requirements.txt        # Pinned dependencies (convenience mirror of pyproject)
+├── .env.example            # Documented, secret-free template for local .env files
 ├── .gitignore
 ├── .pre-commit-config.yaml # Ruff + Black + MyPy git hooks
 ├── LICENSE                 # MIT
@@ -51,18 +102,25 @@ nikola-ai/
 │
 ├── src/nikola/             # Importable package (src-layout)
 │   ├── domain/              # Entities, value objects, errors, ports
+│   │   ├── errors/            # NikolaError hierarchy (ConfigurationError, etc.)
+│   │   └── ports/              # ConfigProviderPort, and other ports (later sprints)
 │   ├── application/         # Use cases: planner, agent, tool_registry, permissions,
 │   │                         #   memory, conversation, scheduler, orchestration
 │   ├── infrastructure/      # Adapters: brains, persistence, event_bus, scheduler,
-│   │                         #   logging, config
+│   │   ├── config/             #   settings.py, yaml_source.py, loader.py,
+│   │   │                       #   env_config_provider.py — see "Configuration" below
+│   │   └── logging/            #   (later sprints)
 │   ├── plugins/             # Tool plugins: filesystem, terminal, browser, messaging,
 │   │                         #   vision, voice, system_info
 │   ├── interfaces/          # CLI, web, voice entrypoints
 │   └── bootstrap/           # Dependency injection wiring / composition root
 │
-├── config/                 # Default config, permission policy, agent profiles (later sprints)
+├── config/
+│   └── default.yaml        # Checked-in, non-secret base configuration
 ├── tests/
 │   ├── unit/                 # Fast, no I/O
+│   │   ├── config/             # Configuration system test suite
+│   │   └── domain/             # Domain error hierarchy tests
 │   ├── integration/          # Real adapters (DB, filesystem, network)
 │   ├── e2e/                  # Full user journeys
 │   └── fixtures/
@@ -71,9 +129,10 @@ nikola-ai/
 ```
 
 Every folder above already exists in this repository with an explanatory `__init__.py`
-docstring (or `.gitkeep` for non-package directories), even though most are empty of logic —
-this is intentional. The skeleton is laid out up front so future sprints add code into an
-already-agreed structure rather than inventing folders ad hoc.
+docstring (or `.gitkeep` for non-package directories still awaiting their first real file),
+even though most are still empty of logic — this is intentional. The skeleton is laid out up
+front so future sprints add code into an already-agreed structure rather than inventing
+folders ad hoc.
 
 ---
 
@@ -140,6 +199,7 @@ correctly.
 | Format (check only) | `black --check .` |
 | Format (apply) | `black .` |
 | Type-check | `mypy src` |
+| Run tests with coverage | `pytest --cov=src/nikola --cov-report=term-missing` |
 | Run all pre-commit hooks manually | `pre-commit run --all-files` |
 
 ---
@@ -153,8 +213,9 @@ All tooling is configured centrally in [`pyproject.toml`](./pyproject.toml):
 - **[Black](https://black.readthedocs.io/)** — opinionated code formatter. Configured
   under `[tool.black]`. Line length and target Python version are kept in sync with Ruff.
 - **[MyPy](https://mypy-lang.org/)** — static type checking. Configured under `[tool.mypy]`.
-  `domain/` is checked in `strict` mode from Sprint 1 onward; other layers are widened to
-  strict mode as they're implemented in later sprints.
+  `domain/` (since Sprint 1) and `infrastructure/config/` (since Sprint 2) are checked in
+  `strict` mode; other layers are widened to strict mode as they're implemented in later
+  sprints.
 - **[Pytest](https://docs.pytest.org/)** — test runner. Configured under
   `[tool.pytest.ini_options]`, with custom markers (`unit`, `integration`, `e2e`) matching the
   three-tier test strategy described in the architecture document.
@@ -176,14 +237,22 @@ worlds — live code edits are picked up immediately, but the import path is nev
 ## Roadmap
 
 This repository is being built incrementally according to a versioned roadmap, from
-**v0.1 (Skeleton & Contracts)** — this sprint — through **v3.0 (Jarvis-Class Assistant)**. See
-the project's roadmap document for the full milestone breakdown, acceptance criteria, and
-implementation order for every future sprint.
+**v0.1 (Skeleton & Contracts)** through **v3.0 (Jarvis-Class Assistant)**. See the project's
+roadmap document for the full milestone breakdown, acceptance criteria, and implementation
+order for every future sprint.
 
-**Sprint 1 (this repository) delivers only:**
+**Sprint 1 (Project Bootstrap) delivered:**
 - The complete folder structure
 - Packaging, dependency, and dev-tool configuration
 - A minimal `nikola` CLI command that prints a bootstrap confirmation message
+
+**Sprint 2 (Configuration System) — current — delivers:**
+- A production-grade, fail-fast configuration system on Pydantic Settings (see
+  [Configuration](#configuration) above)
+- Layered resolution: environment variables > `.env` > `config/default.yaml` > field defaults
+- The `ConfigProviderPort` domain port and its `EnvConfigProvider` infrastructure adapter
+- The `NikolaError` / `ConfigurationError` domain error hierarchy
+- A full unit test suite for the configuration layer (100% line/branch coverage)
 
 **No Brain, Planner, Agent, Tool Registry, Memory, or Permission logic exists yet.** That is
 intentional and matches the project's architecture-first development philosophy: contracts and
