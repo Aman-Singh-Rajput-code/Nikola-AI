@@ -8,10 +8,12 @@ each layer's own error subtype carry the specific context that layer cares
 about.
 
 Sprint 2 introduced the first concrete errors: configuration failures.
-Sprint 4 adds the core command/execution error vocabulary
+Sprint 4 added the core command/execution error vocabulary
 (`InvalidCommandError`, `ToolUnavailableError`, `CommandExecutionError`).
-Later sprints (Planner, Permissions, Tool Registry, etc.) will add their
-own subtrees here without needing to change this base.
+Sprint 5 adds the dependency-injection error vocabulary
+(`ServiceNotRegisteredError`, `CircularDependencyError`). Later sprints
+(Planner, Permissions, Tool Registry, etc.) will add their own subtrees
+here without needing to change this base.
 """
 
 from __future__ import annotations
@@ -84,4 +86,25 @@ class CommandExecutionError(NikolaError):
     specific `InvalidCommandError` (malformed before execution started)
     or `ToolUnavailableError` (the requested tool does not exist). Use
     this for failures that occur once execution is genuinely underway.
+    """
+
+
+class ServiceNotRegisteredError(NikolaError):
+    """Raised when `ServiceContainer.resolve()` is asked for an unregistered type.
+
+    Distinguishes "this dependency was never wired up" from a generic
+    `KeyError`, so calling code (and humans reading a traceback) can tell
+    at a glance that the problem is a missing service registration in the
+    composition root, not an unrelated dictionary lookup failure.
+    """
+
+
+class CircularDependencyError(NikolaError):
+    """Raised when resolving a service would require resolving itself.
+
+    Detected during constructor-injected (transient) resolution, when the
+    chain of types currently being resolved is asked to resolve a type
+    already in that same chain. Raised instead of allowing infinite
+    recursion to exhaust the call stack with a much less informative
+    `RecursionError`.
     """

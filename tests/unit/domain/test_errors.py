@@ -12,12 +12,14 @@ from __future__ import annotations
 import pytest
 
 from nikola.domain.errors import (
+    CircularDependencyError,
     CommandExecutionError,
     ConfigFileNotFoundError,
     ConfigurationError,
     ConfigValidationError,
     InvalidCommandError,
     NikolaError,
+    ServiceNotRegisteredError,
     ToolUnavailableError,
 )
 
@@ -65,3 +67,21 @@ class TestCommandAndToolErrorHierarchy:
         """
         assert not issubclass(InvalidCommandError, CommandExecutionError)
         assert not issubclass(ToolUnavailableError, CommandExecutionError)
+
+
+@pytest.mark.unit
+class TestDependencyInjectionErrorHierarchy:
+    def test_service_not_registered_error_is_a_nikola_error(self) -> None:
+        assert issubclass(ServiceNotRegisteredError, NikolaError)
+
+    def test_circular_dependency_error_is_a_nikola_error(self) -> None:
+        assert issubclass(CircularDependencyError, NikolaError)
+
+    def test_both_are_catchable_as_nikola_error(self) -> None:
+        for error_cls in (ServiceNotRegisteredError, CircularDependencyError):
+            with pytest.raises(NikolaError):
+                raise error_cls("boom")
+
+    def test_the_two_are_independent_siblings(self) -> None:
+        assert not issubclass(ServiceNotRegisteredError, CircularDependencyError)
+        assert not issubclass(CircularDependencyError, ServiceNotRegisteredError)
