@@ -168,6 +168,14 @@ strict = true
 module = "nikola.bootstrap.*"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.brains.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.application.brain.*"
+strict = true
+
 # =============================================================================
 # Pytest — test runner.
 # =============================================================================

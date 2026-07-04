@@ -2,17 +2,19 @@
 
 This is the one module allowed to import concrete classes from every layer
 together — `ServiceContainer` (this package), `EnvConfigProvider` and
-`setup_logging`/`get_logger` (infrastructure), and the domain ports they
-implement. Nothing outside `bootstrap/` should import infrastructure
-concrete classes directly; everything should go through `compose()` and
-resolve against ports.
+`setup_logging`/`get_logger` (infrastructure/config + logging), the Brain
+infrastructure (`BrainFactory`, `build_default_registry`), and the domain
+ports they implement. Nothing outside `bootstrap/` should import
+infrastructure concrete classes directly; everything should go through
+`compose()` and resolve against ports.
 
-Sprint 5 registers exactly the two infrastructure systems that exist so
-far: configuration (`ConfigProviderPort`) and logging initialization
-(`LoggingInitialized`). Each future sprint that introduces a new
-infrastructure adapter (a Brain provider, a persistence repository, the
-event bus, ...) adds one more `container.register_*` call here — this
-function is expected to grow over time, by design.
+Sprint 5 registered configuration (`ConfigProviderPort`) and logging
+initialization (`LoggingInitialized`). Sprint 6 adds `BrainPort`,
+registered as a singleton resolving to the provider selected by
+`brain.provider` in configuration (default: `"null"` → `NullBrain`).
+Each future sprint that introduces a new infrastructure adapter adds one
+more `container.register_*` call here — this function is expected to
+grow over time, by design.
 """
 
 from __future__ import annotations
@@ -20,7 +22,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from nikola.bootstrap.container import ServiceContainer
-from nikola.domain.ports import ConfigProviderPort
+from nikola.domain.ports import BrainPort, ConfigProviderPort
+from nikola.infrastructure.brains import BrainFactory, build_default_registry
 from nikola.infrastructure.config import EnvConfigProvider
 from nikola.infrastructure.logging import get_logger, setup_logging
 
@@ -44,18 +47,25 @@ class LoggingInitialized:
 def compose() -> ServiceContainer:
     """Build and return a fully wired `ServiceContainer` for Nikola AI.
 
-    Registers, as of Sprint 5:
+    Registers, as of Sprint 6:
 
-    - `ConfigProviderPort` (singleton) -> `EnvConfigProvider`, the
+    - `ConfigProviderPort` (singleton) → `EnvConfigProvider`, the
       validated, layered configuration loaded once and shared everywhere.
-    - `LoggingInitialized` (singleton) -> configures logging (console/file
+    - `LoggingInitialized` (singleton) → configures logging (console/file
       handlers, level, formatter) from the resolved configuration's
       `logging` section, the first time it is resolved.
+    - `BrainPort` (singleton) → the AI reasoning backend selected by
+      `brain.provider` in configuration. Defaults to `NullBrain`
+      (`provider = "null"`), which requires no API key and makes no
+      network calls — safe for development and CI. Switch to a real
+      provider by setting `NIKOLA_BRAIN__PROVIDER=claude` (etc.) once
+      the concrete adapters are implemented in later sprints.
 
     Construction is lazy: nothing in this function actually loads
-    configuration or configures logging by itself — both happen on first
-    `resolve()`, in the order they are first requested. Calling
-    `compose()` itself only registers *how* to build each service.
+    configuration, configures logging, or instantiates a Brain by itself
+    — all happen on first `resolve()`, in the order they are first
+    requested. Calling `compose()` itself only registers *how* to build
+    each service.
 
     Returns:
         A `ServiceContainer` with Nikola AI's current set of
@@ -81,5 +91,22 @@ def compose() -> ServiceContainer:
         return LoggingInitialized()
 
     container.register_singleton(LoggingInitialized, factory=_initialize_logging)
+
+    def _build_brain(c: ServiceContainer) -> BrainPort:
+        config_provider = c.resolve(ConfigProviderPort)  # type: ignore[type-abstract]
+        settings = config_provider.get_settings()
+        registry = build_default_registry()
+        factory = BrainFactory(registry)
+        brain = factory.create_from_settings(settings.brain)
+        get_logger(__name__).info(
+            "Brain initialized.",
+            extra={"provider": brain.provider_name},
+        )
+        return brain
+
+    container.register_singleton(
+        BrainPort,  # type: ignore[type-abstract]
+        factory=_build_brain,
+    )
 
     return container

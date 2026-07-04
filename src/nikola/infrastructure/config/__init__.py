@@ -19,6 +19,7 @@ from nikola.infrastructure.config.env_config_provider import EnvConfigProvider
 from nikola.infrastructure.config.loader import load_settings
 from nikola.infrastructure.config.settings import (
     AppSettings,
+    BrainSettings,
     Environment,
     LoggingSettings,
     LogLevel,
@@ -31,6 +32,7 @@ __all__ = [
     "NikolaSettings",
     "AppSettings",
     "LoggingSettings",
+    "BrainSettings",
     "Environment",
     "LogLevel",
 ]

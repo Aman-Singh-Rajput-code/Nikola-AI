@@ -40,6 +40,7 @@ __all__ = [
     "LogLevel",
     "AppSettings",
     "LoggingSettings",
+    "BrainSettings",
     "NikolaSettings",
 ]
 
@@ -148,6 +149,32 @@ class LoggingSettings(BaseModel):
         return value
 
 
+class BrainSettings(BaseModel):
+    """Configuration for the AI Brain provider selection.
+
+    Sprint 6 adds `provider` as the sole field: the name of the reasoning
+    backend to use. The default `"null"` selects `NullBrain`, a
+    deterministic, no-network-call implementation that proves the wiring
+    without any API key. Future sprints add concrete provider adapters
+    (e.g. `"claude"`, `"openai"`, `"ollama"`) whose names are registered
+    in `BrainRegistry` in `infrastructure/brains/brain_registry.py`.
+
+    Switching providers requires only a config change:
+        NIKOLA_BRAIN__PROVIDER=claude
+    """
+
+    provider: str = Field(
+        default="null",
+        description=(
+            "Name of the AI reasoning backend to use. Must match a key "
+            "registered in `BrainRegistry`. Defaults to 'null' (no external "
+            "calls, deterministic responses — safe default for development "
+            "and CI without API keys)."
+        ),
+        min_length=1,
+    )
+
+
 class NikolaSettings(BaseSettings):
     """Root configuration object for Nikola AI.
 
@@ -182,6 +209,7 @@ class NikolaSettings(BaseSettings):
 
     app: AppSettings = Field(default_factory=AppSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
+    brain: BrainSettings = Field(default_factory=BrainSettings)
 
     @classmethod
     def settings_customise_sources(

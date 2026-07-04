@@ -10,10 +10,11 @@ about.
 Sprint 2 introduced the first concrete errors: configuration failures.
 Sprint 4 added the core command/execution error vocabulary
 (`InvalidCommandError`, `ToolUnavailableError`, `CommandExecutionError`).
-Sprint 5 adds the dependency-injection error vocabulary
-(`ServiceNotRegisteredError`, `CircularDependencyError`). Later sprints
-(Planner, Permissions, Tool Registry, etc.) will add their own subtrees
-here without needing to change this base.
+Sprint 5 added the dependency-injection error vocabulary
+(`ServiceNotRegisteredError`, `CircularDependencyError`).
+Sprint 6 adds the Brain-layer error vocabulary (`BrainError`). Later
+sprints (Planner, Permissions, Tool Registry, etc.) will add their own
+subtrees here without needing to change this base.
 """
 
 from __future__ import annotations
@@ -107,4 +108,26 @@ class CircularDependencyError(NikolaError):
     already in that same chain. Raised instead of allowing infinite
     recursion to exhaust the call stack with a much less informative
     `RecursionError`.
+    """
+
+
+class BrainError(NikolaError):
+    """Raised when the Brain fails to produce a valid reasoning response.
+
+    The concrete infrastructure adapters (Claude, OpenAI, Ollama, etc.)
+    are responsible for catching their own SDK/network exceptions and
+    re-raising them as `BrainError` (or a future subclass) so that
+    calling code — Planner, Orchestrator, Agent — only ever needs to
+    catch `BrainError`, regardless of which provider is active.
+
+    Examples of conditions that should raise `BrainError`:
+    - A provider's context window is exceeded
+    - A provider returns a malformed or unparseable response
+    - A provider rate-limits the request
+    - The selected provider is not available or misconfigured
+
+    Note: `BrainError` is defined in the domain layer so that domain and
+    application code can reference it without importing anything from
+    `infrastructure/`. The concrete adapters that raise it are
+    deliberately in `infrastructure/brains/`.
     """

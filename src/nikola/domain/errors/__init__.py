@@ -9,6 +9,7 @@ are added in later sprints as each layer needs them.
 """
 
 from nikola.domain.errors.domain_errors import (
+    BrainError,
     CircularDependencyError,
     CommandExecutionError,
     ConfigFileNotFoundError,
@@ -30,4 +31,5 @@ __all__ = [
     "CommandExecutionError",
     "ServiceNotRegisteredError",
     "CircularDependencyError",
+    "BrainError",
 ]

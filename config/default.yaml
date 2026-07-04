@@ -29,3 +29,6 @@ logging:
   json_format: true
   console_enabled: true
   # file_path: "logs/nikola.log"  # uncomment to also log to a file (commented out by default)  
+
+brain:
+  provider: "null"  # safe default: no API keys required; switch to "claude", "openai", etc. later

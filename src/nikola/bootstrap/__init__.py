@@ -1,14 +1,15 @@
 """Composition root: dependency injection wiring, application factory, plugin discovery.
 
 The only layer allowed to import concrete classes from every other layer
-together. Sprint 5 implements the dependency injection system:
+together. Sprint 5 implemented the DI mechanism; Sprint 6 adds `BrainPort`
+to the composition root's registrations:
 
 - `container.py` — the generic, Nikola-agnostic DI mechanism:
   `ServiceContainer`, `ServiceLifetime` (Singleton, Factory, Transient),
   and `ServiceDescriptor`.
-- `compose.py` — `compose()`, the actual composition root that registers
-  Nikola AI's real services (configuration, logging) into a
-  `ServiceContainer`.
+- `compose.py` — `compose()`, which now registers configuration, logging,
+  and the AI Brain (`BrainPort` → `NullBrain` by default, switchable by
+  config to any registered provider).
 
 `app_factory.py` (building the fully wired *application*, beyond just its
 service registrations) and `plugin_discovery.py` are implemented in later
