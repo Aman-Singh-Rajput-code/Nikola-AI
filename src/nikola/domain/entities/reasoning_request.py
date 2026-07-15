@@ -28,9 +28,10 @@ class ConversationTurn:
     content: str
 
     def __post_init__(self) -> None:
-        if self.role not in ("user", "assistant"):
+        if self.role not in ("user", "assistant", "tool"):
             raise ValueError(
-                f"ConversationTurn.role must be 'user' or 'assistant', got {self.role!r}."
+                f"ConversationTurn.role must be 'user', 'assistant', or 'tool', "
+                f"got {self.role!r}."
             )
         if not self.content.strip():
             raise ValueError("ConversationTurn.content must not be empty.")

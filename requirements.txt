@@ -1,12 +1,12 @@
 # =============================================================================
-# requirements.txt — Nikola AI (Sprint 1 only)
+# requirements.txt — Nikola AI (through Sprint 2: Configuration System)
 #
 # This file is a convenience pin-list for environments/tools that expect a
 # requirements.txt (e.g., some CI systems, Docker base images, readers who
 # don't use `pip install -e ".[dev]"`). The pyproject.toml [project.dependencies]
 # and [project.optional-dependencies] sections are the actual source of truth.
 #
-# Scope: ONLY what Sprint 1 (Project Bootstrap) needs to run and be developed.
+# Scope: Sprint 1 (Project Bootstrap) + Sprint 2 (Configuration System).
 # No Brain/LLM SDKs, no databases, no vector stores, no plugin frameworks —
 # those are introduced in their respective future sprints per the roadmap.
 #
@@ -21,6 +21,7 @@ typer>=0.12,<1.0
 pydantic>=2.7,<3.0
 pydantic-settings>=2.3,<3.0
 pyyaml>=6.0,<7.0
+
 # --- Development tooling -------------------------------------------------------
 ruff>=0.6,<1.0
 black>=24.0,<25.0

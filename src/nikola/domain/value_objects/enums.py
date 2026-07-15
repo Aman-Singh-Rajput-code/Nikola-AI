@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-__all__ = ["TaskStatus", "CommandType", "ResponseType"]
+__all__ = ["TaskStatus", "CommandType", "ResponseType", "MessageRole", "ConversationStatus"]
 
 
 class TaskStatus(StrEnum):
@@ -58,3 +58,31 @@ class ResponseType(StrEnum):
 
     TEXT = "text"
     ERROR = "error"
+
+
+class MessageRole(StrEnum):
+    """The author role of a `Message` within a `Conversation`.
+
+    - `USER`: text typed or spoken by the human.
+    - `ASSISTANT`: Nikola AI's reply.
+    - `SYSTEM`: operational context injected at conversation start.
+    - `TOOL`: the result returned by a tool invocation.
+    """
+
+    USER = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"
+    TOOL = "tool"
+
+
+class ConversationStatus(StrEnum):
+    """The lifecycle state of a `Conversation`.
+
+    - `ACTIVE`: open, accepting new messages.
+    - `ARCHIVED`: retained for history but read-only.
+    - `DELETED`: soft-deleted; terminal, cannot be reactivated.
+    """
+
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+    DELETED = "deleted"

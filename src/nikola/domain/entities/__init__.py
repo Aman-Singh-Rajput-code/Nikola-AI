@@ -1,14 +1,13 @@
 """Domain entities.
 
-Sprint 4 adds `Command`, `Task`, `Response`, and `Session` — the core
-entities modeling a single request/execution/outcome cycle within an
-interaction context. Sprint 6 adds `ReasoningRequest`, `ReasoningResponse`,
-and `ConversationTurn` — the structured data shapes crossing the BrainPort
-boundary. Plan, Step, ToolCall, Permission, MemoryItem, AgentProfile, and
-Policy are implemented in later sprints.
+Sprint 4: Command, Task, Response, Session.
+Sprint 6: ReasoningRequest, ReasoningResponse, ConversationTurn.
+Sprint 7: Message, Conversation.
 """
 
 from nikola.domain.entities.command import Command
+from nikola.domain.entities.conversation import Conversation
+from nikola.domain.entities.message import Message
 from nikola.domain.entities.reasoning_request import ConversationTurn, ReasoningRequest
 from nikola.domain.entities.reasoning_response import ReasoningResponse
 from nikola.domain.entities.response import Response
@@ -23,4 +22,6 @@ __all__ = [
     "ReasoningRequest",
     "ReasoningResponse",
     "ConversationTurn",
+    "Message",
+    "Conversation",
 ]

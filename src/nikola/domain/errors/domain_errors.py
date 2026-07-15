@@ -131,3 +131,23 @@ class BrainError(NikolaError):
     `infrastructure/`. The concrete adapters that raise it are
     deliberately in `infrastructure/brains/`.
     """
+
+
+class ConversationError(NikolaError):
+    """Base class for failures originating in the conversation layer.
+
+    Covers invalid state transitions (e.g. adding a message to a
+    deleted conversation), missing conversations, and other conversation-
+    lifecycle violations. Callers that need to handle any conversation
+    problem uniformly can catch this base class.
+    """
+
+
+class MessageValidationError(NikolaError):
+    """Raised when a `Message` or message-addition request is invalid.
+
+    Distinct from `ConversationError` (which covers conversation-level
+    state problems) — `MessageValidationError` covers problems with the
+    message itself: empty content, invalid role, or a `conversation_id`
+    that does not match the target conversation.
+    """

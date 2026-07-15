@@ -1,11 +1,9 @@
 """Domain-specific exception hierarchy.
 
 Sprint 2 added the base `NikolaError` hierarchy and configuration-specific
-errors. Sprint 4 added the command/execution error vocabulary
-(`InvalidCommandError`, `ToolUnavailableError`, `CommandExecutionError`).
-Sprint 5 adds the dependency-injection error vocabulary
-(`ServiceNotRegisteredError`, `CircularDependencyError`). Further subtypes
-are added in later sprints as each layer needs them.
+errors. Sprint 4 added command/execution errors. Sprint 5 added DI errors.
+Sprint 6 added `BrainError`. Sprint 7 adds `ConversationError` and
+`MessageValidationError`. Further subtypes are added in later sprints.
 """
 
 from nikola.domain.errors.domain_errors import (
@@ -15,7 +13,9 @@ from nikola.domain.errors.domain_errors import (
     ConfigFileNotFoundError,
     ConfigurationError,
     ConfigValidationError,
+    ConversationError,
     InvalidCommandError,
+    MessageValidationError,
     NikolaError,
     ServiceNotRegisteredError,
     ToolUnavailableError,
@@ -32,4 +32,6 @@ __all__ = [
     "ServiceNotRegisteredError",
     "CircularDependencyError",
     "BrainError",
+    "ConversationError",
+    "MessageValidationError",
 ]

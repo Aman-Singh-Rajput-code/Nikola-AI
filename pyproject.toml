@@ -175,6 +175,14 @@ strict = true
 [[tool.mypy.overrides]]
 module = "nikola.application.brain.*"
 strict = true
+[[tool.mypy.overrides]]
+module = "nikola.application.conversation.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.persistence.in_memory.*"
+strict = true
+
 
 # =============================================================================
 # Pytest — test runner.

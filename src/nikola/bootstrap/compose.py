@@ -1,20 +1,7 @@
-"""The composition root: builds a fully wired `ServiceContainer` for Nikola AI.
+"""The composition root: builds a fully wired ServiceContainer for Nikola AI.
 
-This is the one module allowed to import concrete classes from every layer
-together — `ServiceContainer` (this package), `EnvConfigProvider` and
-`setup_logging`/`get_logger` (infrastructure/config + logging), the Brain
-infrastructure (`BrainFactory`, `build_default_registry`), and the domain
-ports they implement. Nothing outside `bootstrap/` should import
-infrastructure concrete classes directly; everything should go through
-`compose()` and resolve against ports.
-
-Sprint 5 registered configuration (`ConfigProviderPort`) and logging
-initialization (`LoggingInitialized`). Sprint 6 adds `BrainPort`,
-registered as a singleton resolving to the provider selected by
-`brain.provider` in configuration (default: `"null"` → `NullBrain`).
-Each future sprint that introduces a new infrastructure adapter adds one
-more `container.register_*` call here — this function is expected to
-grow over time, by design.
+Sprint 5: config, logging. Sprint 6: BrainPort.
+Sprint 7: ConversationRepositoryPort, ConversationService, ConversationManager.
 """
 
 from __future__ import annotations
@@ -22,62 +9,36 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from nikola.bootstrap.container import ServiceContainer
-from nikola.domain.ports import BrainPort, ConfigProviderPort
+from nikola.domain.ports import BrainPort, ConfigProviderPort, ConversationRepositoryPort
 from nikola.infrastructure.brains import BrainFactory, build_default_registry
 from nikola.infrastructure.config import EnvConfigProvider
 from nikola.infrastructure.logging import get_logger, setup_logging
+from nikola.infrastructure.persistence.in_memory import InMemoryConversationRepository
 
 __all__ = ["compose", "LoggingInitialized"]
 
 
 @dataclass(frozen=True, slots=True)
 class LoggingInitialized:
-    """Marker returned once logging has been configured via `setup_logging()`.
-
-    `setup_logging()` is a void-returning function, not a constructible
-    service — there is no "logging object" to hand out the way there is a
-    `ConfigProviderPort` implementation. Registering this marker type as a
-    singleton lets logging initialization be an explicit, container-managed,
-    ordered step (any other registration can declare "I depend on logging
-    being set up first" by resolving `LoggingInitialized`), without forcing
-    the container to special-case factories that return `None`.
-    """
+    """Marker returned once logging has been configured via setup_logging()."""
 
 
 def compose() -> ServiceContainer:
-    """Build and return a fully wired `ServiceContainer` for Nikola AI.
+    """Build and return a fully wired ServiceContainer for Nikola AI.
 
-    Registers, as of Sprint 6:
-
-    - `ConfigProviderPort` (singleton) → `EnvConfigProvider`, the
-      validated, layered configuration loaded once and shared everywhere.
-    - `LoggingInitialized` (singleton) → configures logging (console/file
-      handlers, level, formatter) from the resolved configuration's
-      `logging` section, the first time it is resolved.
-    - `BrainPort` (singleton) → the AI reasoning backend selected by
-      `brain.provider` in configuration. Defaults to `NullBrain`
-      (`provider = "null"`), which requires no API key and makes no
-      network calls — safe for development and CI. Switch to a real
-      provider by setting `NIKOLA_BRAIN__PROVIDER=claude` (etc.) once
-      the concrete adapters are implemented in later sprints.
-
-    Construction is lazy: nothing in this function actually loads
-    configuration, configures logging, or instantiates a Brain by itself
-    — all happen on first `resolve()`, in the order they are first
-    requested. Calling `compose()` itself only registers *how* to build
-    each service.
-
-    Returns:
-        A `ServiceContainer` with Nikola AI's current set of
-        infrastructure services registered.
+    Registers as of Sprint 7:
+    - ConfigProviderPort (singleton) -> EnvConfigProvider
+    - LoggingInitialized (singleton) -> configures logging from config
+    - BrainPort (singleton) -> AI reasoning backend from config (default: NullBrain)
+    - ConversationRepositoryPort (singleton) -> InMemoryConversationRepository
+    - ConversationService (singleton) -> wraps the conversation repository
+    - ConversationManager (singleton) -> session-level coordinator
     """
+    from nikola.application.conversation.conversation_manager import ConversationManager
+    from nikola.application.conversation.conversation_service import ConversationService
+
     container = ServiceContainer()
 
-    # ConfigProviderPort is an abstract port (ABC) used here purely as a
-    # registration/lookup key, never instantiated directly — MyPy's
-    # `type-abstract` check is a false positive for this DI usage pattern,
-    # where the container's `dict[type[Any], ...]` key is the type itself,
-    # not something callable used to construct an instance.
     container.register_singleton(
         ConfigProviderPort,  # type: ignore[type-abstract]
         factory=lambda _c: EnvConfigProvider(),
@@ -107,6 +68,25 @@ def compose() -> ServiceContainer:
     container.register_singleton(
         BrainPort,  # type: ignore[type-abstract]
         factory=_build_brain,
+    )
+
+    container.register_singleton(
+        ConversationRepositoryPort,  # type: ignore[type-abstract]
+        factory=lambda _c: InMemoryConversationRepository(),
+    )
+
+    container.register_singleton(
+        ConversationService,
+        factory=lambda c: ConversationService(
+            repository=c.resolve(ConversationRepositoryPort),  # type: ignore[type-abstract]
+        ),
+    )
+
+    container.register_singleton(
+        ConversationManager,
+        factory=lambda c: ConversationManager(
+            service=c.resolve(ConversationService),
+        ),
     )
 
     return container
