@@ -1,7 +1,0 @@
-pytest
-
-ruff
-
-mypy
-
-nikola
