@@ -1,9 +1,8 @@
 """Domain-specific exception hierarchy.
 
-Sprint 2 added the base `NikolaError` hierarchy and configuration-specific
-errors. Sprint 4 added command/execution errors. Sprint 5 added DI errors.
-Sprint 6 added `BrainError`. Sprint 7 adds `ConversationError` and
-`MessageValidationError`. Further subtypes are added in later sprints.
+Sprint 2: configuration errors. Sprint 4: command/execution errors.
+Sprint 5: DI errors. Sprint 6: BrainError. Sprint 7: ConversationError,
+MessageValidationError. Sprint 8: MemoryError.
 """
 
 from nikola.domain.errors.domain_errors import (
@@ -15,6 +14,7 @@ from nikola.domain.errors.domain_errors import (
     ConfigValidationError,
     ConversationError,
     InvalidCommandError,
+    MemoryError,
     MessageValidationError,
     NikolaError,
     ServiceNotRegisteredError,
@@ -34,4 +34,5 @@ __all__ = [
     "BrainError",
     "ConversationError",
     "MessageValidationError",
+    "MemoryError",
 ]

@@ -151,3 +151,17 @@ class MessageValidationError(NikolaError):
     message itself: empty content, invalid role, or a `conversation_id`
     that does not match the target conversation.
     """
+
+
+class MemoryError(NikolaError):
+    """Base class for failures originating in the memory layer.
+
+    Covers missing entries, invalid importance values, and other
+    memory-lifecycle violations. Callers that need to handle any memory
+    problem uniformly can catch this base class.
+
+    Note: Although Python's built-in namespace also has a `MemoryError`,
+    this class is distinct — it inherits from `NikolaError` (not
+    `BaseException`) and lives in `nikola.domain.errors`. Always import
+    it explicitly from this module to avoid shadowing the built-in.
+    """

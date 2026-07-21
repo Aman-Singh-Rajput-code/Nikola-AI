@@ -15,7 +15,14 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-__all__ = ["TaskStatus", "CommandType", "ResponseType", "MessageRole", "ConversationStatus"]
+__all__ = [
+    "TaskStatus",
+    "CommandType",
+    "ResponseType",
+    "MessageRole",
+    "ConversationStatus",
+    "MemoryType",
+]
 
 
 class TaskStatus(StrEnum):
@@ -86,3 +93,31 @@ class ConversationStatus(StrEnum):
     ACTIVE = "active"
     ARCHIVED = "archived"
     DELETED = "deleted"
+
+
+class MemoryType(StrEnum):
+    """The cognitive category of a `MemoryEntry`.
+
+    Models four types of memory, each with distinct characteristics:
+
+    - `WORKING`: scratchpad for the current task — temporary, high
+      immediacy, low durability. Discarded or demoted after task
+      completion.
+    - `EPISODIC`: autobiographical record of specific events and
+      interactions ("I helped the user deploy on Tuesday"). Narrative,
+      time-stamped, high durability.
+    - `SEMANTIC`: general factual knowledge about the world and the
+      user ("The user's name is Aman. They prefer Python."). Durable,
+      not tied to a specific event.
+    - `PROCEDURAL`: know-how and learned preferences ("When the user
+      asks about CI/CD, they prefer GitHub Actions examples"). The
+      hardest type to acquire and the most durable.
+
+    The taxonomy shapes retrieval: the Orchestrator queries different
+    types for different purposes, without coupling to the storage layer.
+    """
+
+    WORKING = "working"
+    EPISODIC = "episodic"
+    SEMANTIC = "semantic"
+    PROCEDURAL = "procedural"

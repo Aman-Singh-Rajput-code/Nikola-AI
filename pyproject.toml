@@ -207,3 +207,7 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
 ]
+
+[[tool.mypy.overrides]]
+module = "nikola.application.memory.*"
+strict = true
