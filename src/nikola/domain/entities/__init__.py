@@ -1,16 +1,13 @@
-"""Domain entities.
-
-Sprint 4: Command, Task, Response, Session.
-Sprint 6: ReasoningRequest, ReasoningResponse, ConversationTurn.
-Sprint 7: Message, Conversation.
-Sprint 8: MemoryEntry, MemoryQuery, MemoryResult.
-"""
+"""Domain entities. Sprint 9 adds Plan, PlanStep, PlanningRequest, PlanningResult."""
 
 from nikola.domain.entities.command import Command
 from nikola.domain.entities.conversation import Conversation
 from nikola.domain.entities.memory_entry import MemoryEntry
 from nikola.domain.entities.memory_query import MemoryQuery, MemoryResult
 from nikola.domain.entities.message import Message
+from nikola.domain.entities.plan import Plan
+from nikola.domain.entities.plan_step import PlanStep
+from nikola.domain.entities.planning_request import PlanningRequest, PlanningResult
 from nikola.domain.entities.reasoning_request import ConversationTurn, ReasoningRequest
 from nikola.domain.entities.reasoning_response import ReasoningResponse
 from nikola.domain.entities.response import Response
@@ -30,4 +27,8 @@ __all__ = [
     "MemoryEntry",
     "MemoryQuery",
     "MemoryResult",
+    "Plan",
+    "PlanStep",
+    "PlanningRequest",
+    "PlanningResult",
 ]

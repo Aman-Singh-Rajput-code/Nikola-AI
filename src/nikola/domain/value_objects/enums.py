@@ -121,3 +121,36 @@ class MemoryType(StrEnum):
     EPISODIC = "episodic"
     SEMANTIC = "semantic"
     PROCEDURAL = "procedural"
+
+
+class PlanStatus(StrEnum):
+    """Lifecycle state of a Plan."""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class StepStatus(StrEnum):
+    """Lifecycle state of a PlanStep."""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class StepType(StrEnum):
+    """Category of action a PlanStep represents."""
+
+    RESEARCH = "research"
+    CODE = "code"
+    SHELL = "shell"
+    FILE = "file"
+    COMMUNICATION = "communication"
+    REASONING = "reasoning"
+    HUMAN_INPUT = "human_input"
+    GENERIC = "generic"

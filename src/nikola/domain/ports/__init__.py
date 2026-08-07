@@ -1,14 +1,11 @@
-"""Abstract interfaces (ports) that the domain depends on and infrastructure implements.
-
-Sprint 2: ConfigProviderPort. Sprint 3: LoggerPort. Sprint 6: BrainPort.
-Sprint 7: ConversationRepositoryPort. Sprint 8: MemoryRepositoryPort.
-"""
+"""Domain ports. Sprint 9 adds PlannerPort."""
 
 from nikola.domain.ports.brain_port import BrainPort
 from nikola.domain.ports.config_provider_port import ConfigProviderPort
 from nikola.domain.ports.conversation_repository_port import ConversationRepositoryPort
 from nikola.domain.ports.logger_port import LoggerPort
 from nikola.domain.ports.memory_repository_port import MemoryRepositoryPort
+from nikola.domain.ports.planner_port import PlannerPort
 
 __all__ = [
     "ConfigProviderPort",
@@ -16,4 +13,5 @@ __all__ = [
     "BrainPort",
     "ConversationRepositoryPort",
     "MemoryRepositoryPort",
+    "PlannerPort",
 ]

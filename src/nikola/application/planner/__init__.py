@@ -1,1 +1,6 @@
-"""Planner use cases: turns a Goal into a validated Plan via the BrainPort. Implemented in later sprints."""
+"""Planner use-case layer. Sprint 9: PlanningService, PlanningManager."""
+
+from nikola.application.planner.planning_manager import PlanningManager
+from nikola.application.planner.planning_service import PlanningService
+
+__all__ = ["PlanningService", "PlanningManager"]

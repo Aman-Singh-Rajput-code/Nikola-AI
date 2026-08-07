@@ -165,3 +165,11 @@ class MemoryError(NikolaError):
     `BaseException`) and lives in `nikola.domain.errors`. Always import
     it explicitly from this module to avoid shadowing the built-in.
     """
+
+
+class PlanningError(NikolaError):
+    """Base class for failures originating in the planning layer.
+
+    Covers invalid planning requests (empty goal), plans that cannot be
+    created, and other planning-lifecycle violations.
+    """

@@ -211,3 +211,11 @@ exclude_lines = [
 [[tool.mypy.overrides]]
 module = "nikola.application.memory.*"
 strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.application.planner.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.planners.*"
+strict = true

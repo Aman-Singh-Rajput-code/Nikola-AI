@@ -1,9 +1,4 @@
-"""The composition root: builds a fully wired ServiceContainer for Nikola AI.
-
-Sprint 5: config, logging. Sprint 6: BrainPort.
-Sprint 7: ConversationRepositoryPort, ConversationService, ConversationManager.
-Sprint 8: MemoryRepositoryPort, MemoryService, MemoryManager.
-"""
+"""Composition root. Sprint 9 adds PlannerPort, PlanningService, PlanningManager."""
 
 from __future__ import annotations
 
@@ -15,6 +10,7 @@ from nikola.domain.ports import (
     ConfigProviderPort,
     ConversationRepositoryPort,
     MemoryRepositoryPort,
+    PlannerPort,
 )
 from nikola.infrastructure.brains import BrainFactory, build_default_registry
 from nikola.infrastructure.config import EnvConfigProvider
@@ -23,6 +19,7 @@ from nikola.infrastructure.persistence.in_memory import (
     InMemoryConversationRepository,
     InMemoryMemoryRepository,
 )
+from nikola.infrastructure.planners import RuleBasedPlanner
 
 __all__ = ["compose", "LoggingInitialized"]
 
@@ -33,37 +30,22 @@ class LoggingInitialized:
 
 
 def compose() -> ServiceContainer:
-    """Build and return a fully wired ServiceContainer for Nikola AI.
-
-    Registers as of Sprint 8:
-    - ConfigProviderPort          -> EnvConfigProvider
-    - LoggingInitialized          -> configures logging from config
-    - BrainPort                   -> AI reasoning backend (default: NullBrain)
-    - ConversationRepositoryPort  -> InMemoryConversationRepository
-    - ConversationService         -> wraps the conversation repository
-    - ConversationManager         -> session-level coordinator
-    - MemoryRepositoryPort        -> InMemoryMemoryRepository
-    - ImportanceRetrievalStrategy -> importance-then-recency ordering
-    - MemoryService               -> store, retrieve, strengthen, forget
-    - MemoryManager               -> type-specific convenience API
-    """
+    """Build and return a fully wired ServiceContainer for Nikola AI."""
     from nikola.application.conversation.conversation_manager import ConversationManager
     from nikola.application.conversation.conversation_service import ConversationService
     from nikola.application.memory.memory_manager import MemoryManager
-    from nikola.application.memory.memory_retrieval_strategy import (
-        ImportanceRetrievalStrategy,
-    )
+    from nikola.application.memory.memory_retrieval_strategy import ImportanceRetrievalStrategy
     from nikola.application.memory.memory_service import MemoryService
+    from nikola.application.planner.planning_manager import PlanningManager
+    from nikola.application.planner.planning_service import PlanningService
 
     container = ServiceContainer()
 
-    # --- Configuration ---
     container.register_singleton(
         ConfigProviderPort,  # type: ignore[type-abstract]
         factory=lambda _c: EnvConfigProvider(),
     )
 
-    # --- Logging ---
     def _initialize_logging(c: ServiceContainer) -> LoggingInitialized:
         config_provider = c.resolve(ConfigProviderPort)  # type: ignore[type-abstract]
         settings = config_provider.get_settings()
@@ -73,7 +55,6 @@ def compose() -> ServiceContainer:
 
     container.register_singleton(LoggingInitialized, factory=_initialize_logging)
 
-    # --- Brain ---
     def _build_brain(c: ServiceContainer) -> BrainPort:
         config_provider = c.resolve(ConfigProviderPort)  # type: ignore[type-abstract]
         settings = config_provider.get_settings()
@@ -83,12 +64,7 @@ def compose() -> ServiceContainer:
         get_logger(__name__).info("Brain initialized.", extra={"provider": brain.provider_name})
         return brain
 
-    container.register_singleton(
-        BrainPort,  # type: ignore[type-abstract]
-        factory=_build_brain,
-    )
-
-    # --- Conversation ---
+    container.register_singleton(BrainPort, factory=_build_brain)  # type: ignore[type-abstract]
     container.register_singleton(
         ConversationRepositoryPort,  # type: ignore[type-abstract]
         factory=lambda _c: InMemoryConversationRepository(),
@@ -103,8 +79,6 @@ def compose() -> ServiceContainer:
         ConversationManager,
         factory=lambda c: ConversationManager(service=c.resolve(ConversationService)),
     )
-
-    # --- Memory ---
     container.register_singleton(
         MemoryRepositoryPort,  # type: ignore[type-abstract]
         factory=lambda _c: InMemoryMemoryRepository(),
@@ -124,5 +98,18 @@ def compose() -> ServiceContainer:
         MemoryManager,
         factory=lambda c: MemoryManager(service=c.resolve(MemoryService)),
     )
-
+    container.register_singleton(
+        PlannerPort,  # type: ignore[type-abstract]
+        factory=lambda _c: RuleBasedPlanner(),
+    )
+    container.register_singleton(
+        PlanningService,
+        factory=lambda c: PlanningService(
+            planner=c.resolve(PlannerPort),  # type: ignore[type-abstract]
+        ),
+    )
+    container.register_singleton(
+        PlanningManager,
+        factory=lambda c: PlanningManager(service=c.resolve(PlanningService)),
+    )
     return container
