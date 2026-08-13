@@ -1,4 +1,4 @@
-"""Composition root. Sprint 9 adds PlannerPort, PlanningService, PlanningManager."""
+"""Composition root. Sprint 10 adds StepExecutorPort, ExecutionEngine, ExecutionService, ExecutionManager."""
 
 from __future__ import annotations
 
@@ -11,9 +11,11 @@ from nikola.domain.ports import (
     ConversationRepositoryPort,
     MemoryRepositoryPort,
     PlannerPort,
+    StepExecutorPort,
 )
 from nikola.infrastructure.brains import BrainFactory, build_default_registry
 from nikola.infrastructure.config import EnvConfigProvider
+from nikola.infrastructure.executors import DeterministicStepExecutor
 from nikola.infrastructure.logging import get_logger, setup_logging
 from nikola.infrastructure.persistence.in_memory import (
     InMemoryConversationRepository,
@@ -33,6 +35,9 @@ def compose() -> ServiceContainer:
     """Build and return a fully wired ServiceContainer for Nikola AI."""
     from nikola.application.conversation.conversation_manager import ConversationManager
     from nikola.application.conversation.conversation_service import ConversationService
+    from nikola.application.execution.execution_engine import ExecutionEngine
+    from nikola.application.execution.execution_manager import ExecutionManager
+    from nikola.application.execution.execution_service import ExecutionService
     from nikola.application.memory.memory_manager import MemoryManager
     from nikola.application.memory.memory_retrieval_strategy import ImportanceRetrievalStrategy
     from nikola.application.memory.memory_service import MemoryService
@@ -41,11 +46,13 @@ def compose() -> ServiceContainer:
 
     container = ServiceContainer()
 
+    # --- Configuration ---
     container.register_singleton(
         ConfigProviderPort,  # type: ignore[type-abstract]
         factory=lambda _c: EnvConfigProvider(),
     )
 
+    # --- Logging ---
     def _initialize_logging(c: ServiceContainer) -> LoggingInitialized:
         config_provider = c.resolve(ConfigProviderPort)  # type: ignore[type-abstract]
         settings = config_provider.get_settings()
@@ -55,6 +62,7 @@ def compose() -> ServiceContainer:
 
     container.register_singleton(LoggingInitialized, factory=_initialize_logging)
 
+    # --- Brain ---
     def _build_brain(c: ServiceContainer) -> BrainPort:
         config_provider = c.resolve(ConfigProviderPort)  # type: ignore[type-abstract]
         settings = config_provider.get_settings()
@@ -65,6 +73,8 @@ def compose() -> ServiceContainer:
         return brain
 
     container.register_singleton(BrainPort, factory=_build_brain)  # type: ignore[type-abstract]
+
+    # --- Conversation ---
     container.register_singleton(
         ConversationRepositoryPort,  # type: ignore[type-abstract]
         factory=lambda _c: InMemoryConversationRepository(),
@@ -79,6 +89,8 @@ def compose() -> ServiceContainer:
         ConversationManager,
         factory=lambda c: ConversationManager(service=c.resolve(ConversationService)),
     )
+
+    # --- Memory ---
     container.register_singleton(
         MemoryRepositoryPort,  # type: ignore[type-abstract]
         factory=lambda _c: InMemoryMemoryRepository(),
@@ -98,6 +110,8 @@ def compose() -> ServiceContainer:
         MemoryManager,
         factory=lambda c: MemoryManager(service=c.resolve(MemoryService)),
     )
+
+    # --- Planner ---
     container.register_singleton(
         PlannerPort,  # type: ignore[type-abstract]
         factory=lambda _c: RuleBasedPlanner(),
@@ -112,4 +126,25 @@ def compose() -> ServiceContainer:
         PlanningManager,
         factory=lambda c: PlanningManager(service=c.resolve(PlanningService)),
     )
+
+    # --- Execution ---
+    container.register_singleton(
+        StepExecutorPort,  # type: ignore[type-abstract]
+        factory=lambda _c: DeterministicStepExecutor(),
+    )
+    container.register_singleton(
+        ExecutionEngine,
+        factory=lambda c: ExecutionEngine(
+            step_executor=c.resolve(StepExecutorPort),  # type: ignore[type-abstract]
+        ),
+    )
+    container.register_singleton(
+        ExecutionService,
+        factory=lambda c: ExecutionService(engine=c.resolve(ExecutionEngine)),
+    )
+    container.register_singleton(
+        ExecutionManager,
+        factory=lambda c: ExecutionManager(service=c.resolve(ExecutionService)),
+    )
+
     return container

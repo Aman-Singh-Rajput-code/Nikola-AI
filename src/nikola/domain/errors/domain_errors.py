@@ -173,3 +173,13 @@ class PlanningError(NikolaError):
     Covers invalid planning requests (empty goal), plans that cannot be
     created, and other planning-lifecycle violations.
     """
+
+
+class ExecutionError(NikolaError):
+    """Base class for failures originating in the execution layer.
+
+    Covers invalid execution requests (empty plan, already-running
+    execution), dependency cycle violations, and other execution-lifecycle
+    failures. Callers that need to handle any execution problem uniformly
+    can catch this base class.
+    """

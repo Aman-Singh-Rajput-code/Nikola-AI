@@ -219,3 +219,11 @@ strict = true
 [[tool.mypy.overrides]]
 module = "nikola.infrastructure.planners.*"
 strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.application.execution.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.executors.*"
+strict = true

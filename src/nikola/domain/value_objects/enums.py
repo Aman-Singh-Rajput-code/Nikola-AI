@@ -22,6 +22,11 @@ __all__ = [
     "MessageRole",
     "ConversationStatus",
     "MemoryType",
+    "PlanStatus",
+    "StepStatus",
+    "StepType",
+    "ExecutionStatus",
+    "StepExecutionStatus",
 ]
 
 
@@ -154,3 +159,39 @@ class StepType(StrEnum):
     REASONING = "reasoning"
     HUMAN_INPUT = "human_input"
     GENERIC = "generic"
+
+
+class ExecutionStatus(StrEnum):
+    """The lifecycle state of an `Execution`.
+
+    An `Execution` progresses from `PENDING` when created, to `RUNNING`
+    when the first step begins, and then to a terminal state:
+
+    - `COMPLETED`: all required steps finished successfully.
+    - `FAILED`: at least one step failed and execution cannot continue.
+    - `CANCELLED`: execution was explicitly cancelled before completing.
+    """
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class StepExecutionStatus(StrEnum):
+    """The outcome of executing an individual `PlanStep`.
+
+    Distinct from `StepStatus` (the Plan's view of a step) — this enum
+    records the Execution Engine's observed outcome for each step attempt.
+
+    - `SUCCESS`: the step completed without error.
+    - `FAILED`: the step raised an error or returned a failure result.
+    - `SKIPPED`: the step was not attempted because a dependency failed.
+    - `CANCELLED`: the step was not attempted because execution was cancelled.
+    """
+
+    SUCCESS = "success"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+    CANCELLED = "cancelled"
