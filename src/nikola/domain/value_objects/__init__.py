@@ -1,12 +1,4 @@
-"""Immutable value objects: typed identifiers, enums, and domain concepts.
-
-Sprint 4: CommandId, TaskId, SessionId, TaskStatus, CommandType, ResponseType.
-Sprint 6: IntentType, Intent.
-Sprint 7: ConversationId, MessageId, MessageRole, ConversationStatus.
-Sprint 8: MemoryId, MemoryType.
-Sprint 9: PlanId, StepId, PlanStatus, StepStatus, StepType.
-Sprint 10: ExecutionId, ExecutionStatus, StepExecutionStatus.
-"""
+"""Immutable value objects. Sprint 11 adds ToolId."""
 
 from nikola.domain.value_objects.command_id import CommandId
 from nikola.domain.value_objects.conversation_id import ConversationId
@@ -31,6 +23,7 @@ from nikola.domain.value_objects.plan_id import PlanId
 from nikola.domain.value_objects.session_id import SessionId
 from nikola.domain.value_objects.step_id import StepId
 from nikola.domain.value_objects.task_id import TaskId
+from nikola.domain.value_objects.tool_id import ToolId
 
 __all__ = [
     "CommandId",
@@ -42,6 +35,7 @@ __all__ = [
     "PlanId",
     "StepId",
     "ExecutionId",
+    "ToolId",
     "TaskStatus",
     "CommandType",
     "ResponseType",

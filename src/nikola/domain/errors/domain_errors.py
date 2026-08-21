@@ -183,3 +183,28 @@ class ExecutionError(NikolaError):
     failures. Callers that need to handle any execution problem uniformly
     can catch this base class.
     """
+
+
+class ToolRegistryError(NikolaError):
+    """Base class for failures originating in the Tool Registry layer.
+
+    Callers that need to handle any tool-registry problem uniformly
+    can catch this base class.
+    """
+
+
+class ToolNotFoundError(ToolRegistryError):
+    """Raised when a requested tool is not registered in the Tool Registry.
+
+    Distinct from `ToolAlreadyRegisteredError` — this is a lookup failure,
+    not a registration conflict. Callers that need to distinguish "tool
+    missing" from all other registry errors can catch this subclass.
+    """
+
+
+class ToolAlreadyRegisteredError(ToolRegistryError):
+    """Raised when registering a tool whose ToolId is already in the registry.
+
+    The registry does not silently overwrite existing tools. Callers must
+    explicitly unregister a tool before re-registering a replacement.
+    """

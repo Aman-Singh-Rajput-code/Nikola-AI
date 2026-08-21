@@ -1,4 +1,4 @@
-"""Composition root. Sprint 10 adds StepExecutorPort, ExecutionEngine, ExecutionService, ExecutionManager."""
+"""Composition root. Sprint 11 adds ToolRegistryPort, ToolRegistryService, ToolRegistryManager."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from nikola.domain.ports import (
     MemoryRepositoryPort,
     PlannerPort,
     StepExecutorPort,
+    ToolRegistryPort,
 )
 from nikola.infrastructure.brains import BrainFactory, build_default_registry
 from nikola.infrastructure.config import EnvConfigProvider
@@ -22,6 +23,7 @@ from nikola.infrastructure.persistence.in_memory import (
     InMemoryMemoryRepository,
 )
 from nikola.infrastructure.planners import RuleBasedPlanner
+from nikola.infrastructure.tool_registry import InMemoryToolRegistry
 
 __all__ = ["compose", "LoggingInitialized"]
 
@@ -43,6 +45,8 @@ def compose() -> ServiceContainer:
     from nikola.application.memory.memory_service import MemoryService
     from nikola.application.planner.planning_manager import PlanningManager
     from nikola.application.planner.planning_service import PlanningService
+    from nikola.application.tool_registry.tool_registry_manager import ToolRegistryManager
+    from nikola.application.tool_registry.tool_registry_service import ToolRegistryService
 
     container = ServiceContainer()
 
@@ -145,6 +149,22 @@ def compose() -> ServiceContainer:
     container.register_singleton(
         ExecutionManager,
         factory=lambda c: ExecutionManager(service=c.resolve(ExecutionService)),
+    )
+
+    # --- Tool Registry ---
+    container.register_singleton(
+        ToolRegistryPort,  # type: ignore[type-abstract]
+        factory=lambda _c: InMemoryToolRegistry(),
+    )
+    container.register_singleton(
+        ToolRegistryService,
+        factory=lambda c: ToolRegistryService(
+            registry=c.resolve(ToolRegistryPort),  # type: ignore[type-abstract]
+        ),
+    )
+    container.register_singleton(
+        ToolRegistryManager,
+        factory=lambda c: ToolRegistryManager(service=c.resolve(ToolRegistryService)),
     )
 
     return container

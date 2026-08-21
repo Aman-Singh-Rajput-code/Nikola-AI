@@ -227,3 +227,11 @@ strict = true
 [[tool.mypy.overrides]]
 module = "nikola.infrastructure.executors.*"
 strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.application.tool_registry.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "nikola.infrastructure.tool_registry.*"
+strict = true

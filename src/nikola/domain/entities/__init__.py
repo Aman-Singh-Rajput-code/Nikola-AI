@@ -1,4 +1,4 @@
-"""Domain entities. Sprint 10 adds Execution, StepExecutionResult, ExecutionRequest, ExecutionResult."""
+"""Domain entities. Sprint 11 adds Tool."""
 
 from nikola.domain.entities.command import Command
 from nikola.domain.entities.conversation import Conversation
@@ -20,6 +20,7 @@ from nikola.domain.entities.response import Response
 from nikola.domain.entities.session import Session
 from nikola.domain.entities.step_execution_result import StepExecutionResult
 from nikola.domain.entities.task import Task
+from nikola.domain.entities.tool import Tool
 
 __all__ = [
     "Command",
@@ -43,4 +44,5 @@ __all__ = [
     "ExecutionOptions",
     "ExecutionRequest",
     "ExecutionResult",
+    "Tool",
 ]

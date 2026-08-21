@@ -1,10 +1,4 @@
-"""Domain-specific exception hierarchy.
-
-Sprint 2: configuration errors. Sprint 4: command/execution errors.
-Sprint 5: DI errors. Sprint 6: BrainError. Sprint 7: ConversationError,
-MessageValidationError. Sprint 8: MemoryError. Sprint 9: PlanningError.
-Sprint 10: ExecutionError.
-"""
+"""Domain-specific exception hierarchy. Sprint 11 adds ToolRegistryError, ToolNotFoundError, ToolAlreadyRegisteredError."""
 
 from nikola.domain.errors.domain_errors import (
     BrainError,
@@ -21,6 +15,9 @@ from nikola.domain.errors.domain_errors import (
     NikolaError,
     PlanningError,
     ServiceNotRegisteredError,
+    ToolAlreadyRegisteredError,
+    ToolNotFoundError,
+    ToolRegistryError,
     ToolUnavailableError,
 )
 
@@ -40,4 +37,7 @@ __all__ = [
     "MemoryError",
     "PlanningError",
     "ExecutionError",
+    "ToolRegistryError",
+    "ToolNotFoundError",
+    "ToolAlreadyRegisteredError",
 ]
